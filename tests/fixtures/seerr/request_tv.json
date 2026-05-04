@@ -1,0 +1,7 @@
+{
+  "id": 1248,
+  "status": 2,
+  "media": { "mediaType": "tv", "tmdbId": 71912 },
+  "requestedBy": { "id": 4, "displayName": "Bob" },
+  "seasons": [{ "id": 1, "seasonNumber": 1 }]
+}

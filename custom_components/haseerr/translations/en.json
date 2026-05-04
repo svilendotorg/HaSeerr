@@ -1,0 +1,89 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Seerr",
+        "description": "Provide your Seerr URL and admin API key. Find the API key under Settings → General.",
+        "data": {
+          "url": "Seerr URL",
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to Seerr at the URL provided.",
+      "invalid_auth": "API key was rejected.",
+      "unknown": "Unexpected error — see logs."
+    },
+    "abort": {
+      "already_configured": "This Seerr instance is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "User mapping",
+        "description": "Map each Home Assistant user to a Seerr user. Suggestions are pre-filled.",
+        "data": {
+          "web_url": "Public Seerr URL (used for browser links)",
+          "user_0": "{user_0}",
+          "user_1": "{user_1}",
+          "user_2": "{user_2}",
+          "user_3": "{user_3}",
+          "user_4": "{user_4}",
+          "user_5": "{user_5}",
+          "user_6": "{user_6}",
+          "user_7": "{user_7}",
+          "user_8": "{user_8}",
+          "user_9": "{user_9}",
+          "user_10": "{user_10}",
+          "user_11": "{user_11}",
+          "user_12": "{user_12}",
+          "user_13": "{user_13}",
+          "user_14": "{user_14}",
+          "user_15": "{user_15}",
+          "user_16": "{user_16}",
+          "user_17": "{user_17}",
+          "user_18": "{user_18}",
+          "user_19": "{user_19}"
+        }
+      }
+    }
+  },
+  "services": {
+    "search": {
+      "name": "Search Seerr",
+      "description": "Search for movies or TV shows on Seerr.",
+      "fields": {
+        "query": { "name": "Query", "description": "Title to search for." },
+        "media_type": { "name": "Media type", "description": "all, movie, or tv" },
+        "limit": { "name": "Limit", "description": "Max results to return (1-20)." }
+      }
+    },
+    "request": {
+      "name": "Request media",
+      "description": "Submit a request to Seerr for the caller's mapped user.",
+      "fields": {
+        "tmdb_id": { "name": "TMDB ID", "description": "TheMovieDB ID of the title." },
+        "media_type": { "name": "Media type", "description": "movie or tv" },
+        "seasons": { "name": "Seasons", "description": "TV only. Omit for all seasons." },
+        "user_override": { "name": "User override", "description": "Admin only — override the auto-resolved Seerr user." }
+      }
+    },
+    "approve_request": {
+      "name": "Approve request",
+      "description": "Approve a pending Seerr request by id.",
+      "fields": {
+        "request_id": { "name": "Request ID", "description": "Seerr request id." }
+      }
+    },
+    "decline_request": {
+      "name": "Decline request",
+      "description": "Decline a pending Seerr request by id.",
+      "fields": {
+        "request_id": { "name": "Request ID", "description": "Seerr request id." },
+        "reason": { "name": "Reason", "description": "Optional reason recorded with the decline." }
+      }
+    }
+  }
+}

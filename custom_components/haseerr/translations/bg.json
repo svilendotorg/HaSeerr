@@ -1,0 +1,48 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Свързване със Seerr",
+        "description": "Въведете URL на Seerr и admin API ключ.",
+        "data": { "url": "Seerr URL", "api_key": "API ключ" }
+      }
+    },
+    "error": {
+      "cannot_connect": "Неуспешно свързване със Seerr.",
+      "invalid_auth": "API ключът е отхвърлен.",
+      "unknown": "Неочаквана грешка — вижте логовете."
+    },
+    "abort": { "already_configured": "Този Seerr вече е конфигуриран." }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Свързване на потребители",
+        "description": "Свържете всеки Home Assistant потребител с Seerr потребител.",
+        "data": {
+          "web_url": "Публичен Seerr URL (за линкове в браузъра)",
+          "user_0": "{user_0}",
+          "user_1": "{user_1}",
+          "user_2": "{user_2}",
+          "user_3": "{user_3}",
+          "user_4": "{user_4}",
+          "user_5": "{user_5}",
+          "user_6": "{user_6}",
+          "user_7": "{user_7}",
+          "user_8": "{user_8}",
+          "user_9": "{user_9}",
+          "user_10": "{user_10}",
+          "user_11": "{user_11}",
+          "user_12": "{user_12}",
+          "user_13": "{user_13}",
+          "user_14": "{user_14}",
+          "user_15": "{user_15}",
+          "user_16": "{user_16}",
+          "user_17": "{user_17}",
+          "user_18": "{user_18}",
+          "user_19": "{user_19}"
+        }
+      }
+    }
+  }
+}

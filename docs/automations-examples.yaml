@@ -1,0 +1,67 @@
+# HaSeerr automation recipes — copy what you need into your automations.yaml
+#
+# All examples assume the built-in `overseerr` integration is also installed
+# (provides sensor.overseerr_pending_requests).
+
+# ------------------------------------------------------------------
+# Mobile actionable notification when a request needs approval
+# ------------------------------------------------------------------
+- alias: "Seerr — request needs approval"
+  trigger:
+    - platform: state
+      entity_id: sensor.overseerr_pending_requests
+      attribute: latest_request
+  condition:
+    - "{{ trigger.to_state.attributes.latest_request.status == 'pending_approval' }}"
+  action:
+    - service: notify.mobile_app_your_phone   # change to your device target
+      data:
+        title: "Approval needed"
+        message: >
+          {{ state_attr('sensor.overseerr_pending_requests', 'latest_request').requested_by }}
+          requested {{ state_attr('sensor.overseerr_pending_requests', 'latest_request').title }}
+        data:
+          actions:
+            - action: "haseerr_approve"
+              title: "Approve"
+            - action: "haseerr_decline"
+              title: "Decline"
+
+- alias: "Seerr — handle approve action"
+  trigger:
+    - platform: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: "haseerr_approve"
+  action:
+    - service: haseerr.approve_request
+      data:
+        request_id: "{{ trigger.event.data.request_id }}"
+
+- alias: "Seerr — handle decline action"
+  trigger:
+    - platform: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: "haseerr_decline"
+  action:
+    - service: haseerr.decline_request
+      data:
+        request_id: "{{ trigger.event.data.request_id }}"
+
+# ------------------------------------------------------------------
+# Log every successful HaSeerr request to a logbook entry
+# ------------------------------------------------------------------
+- alias: "Seerr — log request submitted"
+  trigger:
+    - platform: event
+      event_type: haseerr_request_submitted
+  action:
+    - service: logbook.log
+      data:
+        name: "HaSeerr"
+        message: >
+          {{ trigger.event.data.title or trigger.event.data.tmdb_id }}
+          requested by user {{ trigger.event.data.ha_user_id }} →
+          status {{ trigger.event.data.status }}
+        entity_id: sensor.haseerr_status

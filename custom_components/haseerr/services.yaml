@@ -1,0 +1,94 @@
+search:
+  name: Search Seerr
+  description: Search for movies or TV shows on Seerr.
+  fields:
+    query:
+      required: true
+      selector:
+        text:
+    media_type:
+      default: all
+      selector:
+        select:
+          options: [all, movie, tv, music]
+    limit:
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 20
+
+request:
+  name: Request media
+  description: >
+    Submit a request to Seerr for a movie or TV show. Caller's HA user is
+    resolved to a Seerr user via the mapping in integration options.
+  fields:
+    tmdb_id:
+      required: true
+      selector:
+        number:
+          min: 1
+          mode: box
+    media_type:
+      required: true
+      selector:
+        select:
+          options: [movie, tv, music]
+    seasons:
+      description: TV only. Omit or set to "all" for every season; otherwise list e.g. [1, 2].
+      selector:
+        select:
+          multiple: true
+          custom_value: true
+          options: [all]
+    user_override:
+      description: Override the auto-resolved Seerr user (admin use only).
+      selector:
+        text:
+    title:
+      description: Optional display title; included in the haseerr_request_submitted event for logging.
+      selector:
+        text:
+    is_4k:
+      description: Submit as a 4K request (requires Seerr to be configured with a 4K Radarr/Sonarr server and the user to have 4K request permission).
+      default: false
+      selector:
+        boolean:
+
+approve_request:
+  name: Approve a request
+  description: Approve a pending Seerr request by its request id.
+  fields:
+    request_id:
+      required: true
+      selector:
+        number:
+          min: 1
+          mode: box
+
+user_quota:
+  name: Get user quota
+  description: Return Seerr's request quota for the caller's mapped user (movie + tv counts).
+  fields:
+    user_override:
+      description: Admin only — return quota for the specified Seerr user id instead of the caller.
+      selector:
+        number:
+          min: 1
+          mode: box
+
+decline_request:
+  name: Decline a request
+  description: Decline a pending Seerr request by its request id.
+  fields:
+    request_id:
+      required: true
+      selector:
+        number:
+          min: 1
+          mode: box
+    reason:
+      selector:
+        text:
+

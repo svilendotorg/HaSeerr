@@ -1,0 +1,21 @@
+{
+  "domain": "haseerr",
+  "name": "HaSeerr",
+  "version": "0.3.0",
+  "documentation": "https://github.com/svilendotorg/haseerr",
+  "issue_tracker": "https://github.com/svilendotorg/haseerr/issues",
+  "codeowners": [
+    "@svilendotorg"
+  ],
+  "config_flow": true,
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "dependencies": [
+    "http",
+    "webhook"
+  ],
+  "after_dependencies": [
+    "overseerr"
+  ],
+  "integration_type": "service"
+}

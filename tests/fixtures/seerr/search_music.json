@@ -1,0 +1,27 @@
+{
+  "page": 1,
+  "totalPages": 1,
+  "totalResults": 2,
+  "results": [
+    {
+      "id": "ddf0c693-7d28-4dad-839c-fb0d3e6c5d78",
+      "foreignAlbumId": "ddf0c693-7d28-4dad-839c-fb0d3e6c5d78",
+      "mediaType": "music",
+      "title": "OK Computer",
+      "artist": "Radiohead",
+      "releaseDate": "1997-05-21",
+      "posterPath": "/cover.jpg",
+      "overview": "Their third studio album.",
+      "mediaInfo": null
+    },
+    {
+      "id": "abc123",
+      "mbId": "abc123",
+      "mediaType": "music",
+      "title": "Kid A",
+      "artist": "Radiohead",
+      "releaseDate": "2000-10-02",
+      "mediaInfo": { "status": 5 }
+    }
+  ]
+}

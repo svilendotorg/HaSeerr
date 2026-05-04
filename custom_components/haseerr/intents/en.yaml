@@ -1,0 +1,28 @@
+language: en
+intents:
+  RequestMedia:
+    data:
+      - sentences:
+          - "request {title}"
+          - "add {title} to (Seerr|Plex|Jellyfin)"
+          - "(can you|please) request {title}"
+          - "request {title} season {season}"
+        slots:
+          title: { wildcard: true }
+          season: { wildcard: true, optional: true }
+  ConfirmRequest:
+    data:
+      - sentences:
+          - "yes"
+          - "yes please"
+          - "confirm"
+          - "go ahead"
+          - "do it"
+  CancelRequest:
+    data:
+      - sentences:
+          - "no"
+          - "cancel"
+          - "abort"
+          - "nevermind"
+          - "never mind"

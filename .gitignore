@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# HA dev
+.HA_VERSION
+config/
+
+# Node (for the Lit card if we add a build step)
+node_modules/
+dist/
+
+# Local secrets (must NEVER be committed)
+.env
+.env.local
+secrets.yaml

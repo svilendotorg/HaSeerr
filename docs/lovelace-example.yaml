@@ -1,0 +1,37 @@
+# Lovelace fallback for users who don't install the custom-card.
+# Provides a basic search + submit using stock cards + scripts.
+#
+# Add to configuration.yaml:
+#
+# input_text:
+#   haseerr_query:
+#     name: Movie title
+#     max: 200
+#
+# Add to scripts.yaml:
+#
+# haseerr_basic_search:
+#   sequence:
+#     - service: haseerr.search
+#       data:
+#         query: "{{ states('input_text.haseerr_query') }}"
+#         limit: 5
+#       response_variable: out
+#     - service: persistent_notification.create
+#       data:
+#         title: "Search results"
+#         message: >
+#           {% for r in out.results %}
+#             {{ loop.index }}. {{ r.title }} ({{ r.year }}) [{{ r.media_type }}] tmdb_id={{ r.tmdb_id }}
+#           {% endfor %}
+
+type: vertical-stack
+cards:
+  - type: entities
+    entities:
+      - input_text.haseerr_query
+  - type: button
+    name: Search
+    tap_action:
+      action: call-service
+      service: script.haseerr_basic_search

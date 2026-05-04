@@ -1,0 +1,25 @@
+language: bg
+intents:
+  RequestMedia:
+    data:
+      - sentences:
+          - "поискай {title}"
+          - "добави {title} в (Seerr|Plex|Jellyfin)"
+          - "(можеш ли да|моля) поискай {title}"
+          - "поискай {title} сезон {season}"
+        slots:
+          title: { wildcard: true }
+          season: { wildcard: true, optional: true }
+  ConfirmRequest:
+    data:
+      - sentences:
+          - "да"
+          - "да моля"
+          - "потвърди"
+          - "давай"
+  CancelRequest:
+    data:
+      - sentences:
+          - "не"
+          - "отказ"
+          - "забрави"

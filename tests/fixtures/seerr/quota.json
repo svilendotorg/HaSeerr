@@ -1,0 +1,4 @@
+{
+  "movie": { "limit": 10, "used": 4, "restricted": false, "remaining": 6 },
+  "tv":    { "limit": 5, "used": 1, "restricted": false, "remaining": 4 }
+}

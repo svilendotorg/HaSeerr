@@ -1,0 +1,8 @@
+{
+  "pageInfo": { "page": 1, "pages": 1, "results": 3 },
+  "results": [
+    { "id": 1, "displayName": "Alice", "email": "alice@example.com", "plexUsername": "alice" },
+    { "id": 4, "displayName": "Bob", "email": "bob@example.com", "plexUsername": "bob" },
+    { "id": 7, "displayName": "Carol", "email": null, "plexUsername": "carol" }
+  ]
+}
