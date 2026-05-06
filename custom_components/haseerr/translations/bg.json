@@ -44,5 +44,55 @@
         }
       }
     }
+  },
+  "services": {
+    "search": {
+      "name": "Търсене в Seerr",
+      "description": "Търсене на филм или сериал в Seerr.",
+      "fields": {
+        "query": { "name": "Заявка", "description": "Заглавие за търсене." },
+        "media_type": { "name": "Тип съдържание", "description": "all, movie или tv" },
+        "limit": { "name": "Ограничение", "description": "Максимум резултати (1-20)." }
+      }
+    },
+    "request": {
+      "name": "Заявка за съдържание",
+      "description": "Подаване на заявка към Seerr от името на свързания потребител.",
+      "fields": {
+        "tmdb_id": { "name": "TMDB ID", "description": "ID на заглавието в TheMovieDB." },
+        "media_type": { "name": "Тип съдържание", "description": "movie или tv" },
+        "seasons": { "name": "Сезони", "description": "Само за сериали. Пропуснете за всички сезони." },
+        "user_override": { "name": "Замяна на потребител", "description": "Само за администратори — заместване на автоматично откритият потребител." },
+        "is_4k": { "name": "4K", "description": "Подаване като 4K заявка. Изисква Seerr да е свързан с 4K Radarr/Sonarr и потребителят да има право за 4K." },
+        "title": { "name": "Заглавие", "description": "Незадължително заглавие за лог-събитието." }
+      }
+    },
+    "approve_request": {
+      "name": "Одобряване на заявка",
+      "description": "Одобряване на чакаща заявка по идентификатор.",
+      "fields": {
+        "request_id": { "name": "ID на заявката", "description": "Идентификатор на Seerr заявката." }
+      }
+    },
+    "decline_request": {
+      "name": "Отказ на заявка",
+      "description": "Отказ на чакаща заявка по идентификатор.",
+      "fields": {
+        "request_id": { "name": "ID на заявката", "description": "Идентификатор на Seerr заявката." },
+        "reason": { "name": "Причина", "description": "Незадължителна причина за отказа." }
+      }
+    },
+    "user_quota": {
+      "name": "Лимит на потребителя",
+      "description": "Връща лимита за заявки на свързания потребител в Seerr.",
+      "fields": {
+        "user_override": { "name": "Замяна на потребител", "description": "Само за администратори — лимит за указания Seerr потребител." }
+      }
+    }
+  },
+  "exceptions": {
+    "not_authorized_4k": {
+      "message": "Нямате разрешение за заявка на 4K {media_type}."
+    }
   }
 }
