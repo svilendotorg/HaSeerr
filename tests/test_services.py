@@ -9,9 +9,15 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from homeassistant.exceptions import HomeAssistantError
+
 from custom_components.haseerr.const import (
     DOMAIN,
     OPT_USER_MAPPING,
+    PERM_ADMIN,
+    PERM_REQUEST_4K,
+    PERM_REQUEST_4K_MOVIE,
+    PERM_REQUEST_4K_TV,
     SVC_REQUEST,
     SVC_SEARCH,
 )
@@ -153,3 +159,138 @@ async def test_request_rejects_unmapped_user(hass: HomeAssistant, configured):
                 context=ctx,
                 return_response=True,
             )
+
+
+async def _call_4k_request(hass, media_type, perms, *, expect_error=False):
+    """Helper: invoke haseerr.request with is_4k=True under given perms."""
+    from homeassistant.core import Context
+
+    request_called = []
+
+    async def fake_request(self, **kwargs):
+        request_called.append(kwargs)
+        return {"request_id": 99, "status": "pending", "seerr_user_id": 4, "seerr_user_display": "Alice"}
+
+    with patch(
+        "custom_components.haseerr.hub.SeerrClient.get_user_permissions",
+        return_value=perms,
+    ), patch(
+        "custom_components.haseerr.hub.SeerrClient.request",
+        new=fake_request,
+    ):
+        try:
+            await hass.services.async_call(
+                DOMAIN,
+                SVC_REQUEST,
+                {"tmdb_id": 27205, "media_type": media_type, "is_4k": True},
+                blocking=True,
+                return_response=True,
+                context=Context(user_id="ha-1"),
+            )
+        except HomeAssistantError as err:
+            if not expect_error:
+                raise
+            return err, request_called
+    if expect_error:
+        pytest.fail("expected HomeAssistantError but request succeeded")
+    return None, request_called
+
+
+async def test_request_4k_movie_unauthorized_raises(hass: HomeAssistant, configured):
+    """User with REQUEST only (no 4K bits) → HomeAssistantError, no Seerr write."""
+    err, calls = await _call_4k_request(hass, "movie", perms=32, expect_error=True)
+    assert err.translation_key == "not_authorized_4k"
+    assert err.translation_placeholders == {"media_type": "movie"}
+    assert calls == []  # no POST happened
+
+
+async def test_request_4k_movie_authorized_global(hass: HomeAssistant, configured):
+    """REQUEST_4K (4096) bit alone allows movie 4K."""
+    _, calls = await _call_4k_request(hass, "movie", perms=PERM_REQUEST_4K | 32)
+    assert calls and calls[0]["is_4k"] is True
+
+
+async def test_request_4k_movie_authorized_per_type(hass: HomeAssistant, configured):
+    """REQUEST_4K_MOVIE (8192) bit alone allows movie 4K."""
+    _, calls = await _call_4k_request(hass, "movie", perms=PERM_REQUEST_4K_MOVIE | 32)
+    assert calls and calls[0]["is_4k"] is True
+
+
+async def test_request_4k_tv_authorized_per_type(hass: HomeAssistant, configured):
+    """REQUEST_4K_TV (16384) bit alone allows TV 4K."""
+    _, calls = await _call_4k_request(hass, "tv", perms=PERM_REQUEST_4K_TV | 32)
+    assert calls and calls[0]["is_4k"] is True
+
+
+async def test_request_4k_movie_admin_bypass(hass: HomeAssistant, configured):
+    """ADMIN (2) bit alone bypasses 4K-specific checks."""
+    _, calls = await _call_4k_request(hass, "movie", perms=PERM_ADMIN)
+    assert calls and calls[0]["is_4k"] is True
+
+
+async def test_request_4k_music_rejected_no_lookup(hass: HomeAssistant, configured):
+    """is_4k=true with media_type=music → reject without permission lookup or Seerr write."""
+    from homeassistant.core import Context
+
+    perm_calls = []
+
+    async def fake_perms(self, user_id):
+        perm_calls.append(user_id)
+        return PERM_ADMIN
+
+    request_calls = []
+
+    async def fake_request(self, **kwargs):
+        request_calls.append(kwargs)
+        return {"request_id": 99, "status": "pending"}
+
+    with patch(
+        "custom_components.haseerr.hub.SeerrClient.get_user_permissions",
+        new=fake_perms,
+    ), patch(
+        "custom_components.haseerr.hub.SeerrClient.request",
+        new=fake_request,
+    ):
+        with pytest.raises(HomeAssistantError) as ei:
+            await hass.services.async_call(
+                DOMAIN,
+                SVC_REQUEST,
+                {"tmdb_id": 1, "media_type": "music", "is_4k": True},
+                blocking=True,
+                return_response=True,
+                context=Context(user_id="ha-1"),
+            )
+        assert ei.value.translation_key == "not_authorized_4k"
+    assert perm_calls == []  # short-circuit: never fetched perms
+    assert request_calls == []
+
+
+async def test_request_non_4k_skips_permission_check(hass: HomeAssistant, configured):
+    """is_4k=False → zero calls to get_user_permissions (no overhead on common path)."""
+    from homeassistant.core import Context
+
+    perm_calls = []
+
+    async def fake_perms(self, user_id):
+        perm_calls.append(user_id)
+        return PERM_ADMIN
+
+    async def fake_request(self, **kwargs):
+        return {"request_id": 1, "status": "pending"}
+
+    with patch(
+        "custom_components.haseerr.hub.SeerrClient.get_user_permissions",
+        new=fake_perms,
+    ), patch(
+        "custom_components.haseerr.hub.SeerrClient.request",
+        new=fake_request,
+    ):
+        await hass.services.async_call(
+            DOMAIN,
+            SVC_REQUEST,
+            {"tmdb_id": 1, "media_type": "movie"},  # no is_4k
+            blocking=True,
+            return_response=True,
+            context=Context(user_id="ha-1"),
+        )
+    assert perm_calls == []

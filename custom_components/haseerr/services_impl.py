@@ -12,6 +12,7 @@ from homeassistant.core import (
     ServiceResponse,
     SupportsResponse,
 )
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -22,13 +23,17 @@ from .const import (
     EVT_REQUEST_SUBMITTED,
     OPT_USER_MAPPING,
     OPT_WEB_URL,
+    PERM_ADMIN,
+    PERM_REQUEST_4K,
+    PERM_REQUEST_4K_MOVIE,
+    PERM_REQUEST_4K_TV,
     SVC_APPROVE_REQUEST,
     SVC_DECLINE_REQUEST,
     SVC_REQUEST,
     SVC_SEARCH,
     SVC_USER_QUOTA,
 )
-from .hub import SeerrClient, SeerrError
+from .hub import SeerrClient, SeerrError, SeerrPermissionError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,16 +110,51 @@ def _sensor(hass: HomeAssistant, entry: ConfigEntry):
     return hass.data.get(DOMAIN, {}).get(entry.entry_id, {}).get("sensor")
 
 
+async def _check_4k_permission(
+    client: SeerrClient, user_id: int, media_type: str
+) -> None:
+    """Raise SeerrPermissionError if user_id can't request 4K of media_type.
+
+    Music has no 4K concept and is always rejected as a sanity guard.
+    """
+    if media_type == "music":
+        raise SeerrPermissionError("music has no 4K")
+
+    perms = await client.get_user_permissions(user_id)
+    if perms & PERM_ADMIN:
+        return
+    if perms & PERM_REQUEST_4K:
+        return
+    if media_type == "movie" and perms & PERM_REQUEST_4K_MOVIE:
+        return
+    if media_type == "tv" and perms & PERM_REQUEST_4K_TV:
+        return
+    raise SeerrPermissionError(f"user {user_id} cannot request 4K {media_type}")
+
+
 async def _request(call: ServiceCall) -> ServiceResponse:
     hass = call.hass
     entry = _entry(hass)
     user_id = await _resolve_user_id(hass, entry, call)
     client = await _client_for(hass, entry)
     sensor = _sensor(hass, entry)
+
+    media_type = call.data["media_type"]
+    if call.data.get("is_4k", False):
+        try:
+            await _check_4k_permission(client, user_id, media_type)
+        except SeerrPermissionError as err:
+            _LOGGER.debug("4K request denied: %s", err)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="not_authorized_4k",
+                translation_placeholders={"media_type": media_type},
+            ) from err
+
     try:
         result = await client.request(
             tmdb_id=call.data["tmdb_id"],
-            media_type=call.data["media_type"],
+            media_type=media_type,
             user_id=user_id,
             seasons=call.data.get("seasons"),
             is_4k=call.data.get("is_4k", False),
@@ -129,7 +169,7 @@ async def _request(call: ServiceCall) -> ServiceResponse:
         EVT_REQUEST_SUBMITTED,
         {
             "tmdb_id": call.data["tmdb_id"],
-            "media_type": call.data["media_type"],
+            "media_type": media_type,
             "title": call.data.get("title"),
             "request_id": result["request_id"],
             "ha_user_id": call.context.user_id,
