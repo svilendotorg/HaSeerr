@@ -98,12 +98,8 @@ async def _register_lovelace_resource(hass: HomeAssistant) -> None:
         if existing_id is not None:
             if existing_url == CARD_URL:
                 return  # already up-to-date
-            await resources.async_update_item(
-                existing_id, {"url": CARD_URL, "res_type": "module"}
-            )
-            _LOGGER.info(
-                "Updated haseerr-card Lovelace resource: %s → %s", existing_url, CARD_URL
-            )
+            await resources.async_update_item(existing_id, {"url": CARD_URL, "res_type": "module"})
+            _LOGGER.info("Updated haseerr-card Lovelace resource: %s → %s", existing_url, CARD_URL)
         else:
             await resources.async_create_item({"url": CARD_URL, "res_type": "module"})
             _LOGGER.info("Registered haseerr-card as a Lovelace resource: %s", CARD_URL)
