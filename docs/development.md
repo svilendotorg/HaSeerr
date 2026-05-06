@@ -104,6 +104,14 @@ haseerr/
     └── ISSUE_TEMPLATE/
 ```
 
+## Frontend (Lovelace card) cache busting
+
+The card is served by `__init__.py` at `/haseerr_static/haseerr-card.js?v=<integration_version>`. The `?v=` suffix is read from `manifest.json` at module load — every release rotates it, which forces the HA Companion app's webview (Android/iOS) and browser caches to re-fetch.
+
+`_register_lovelace_resource` matches existing resource entries by **base path** (`/haseerr_static/haseerr-card.js`) and updates them in place when the version differs. This means HACS users upgrading from older releases get the cache-bust on first restart, without manual cache clears.
+
+When iterating on the card during development, bump `manifest.json` `version` (or change `CARD_URL_PATH` temporarily) to force the bust without a release.
+
 ## Contributing
 
 Issues and PRs welcome. Run the test suite locally before submitting; CI will block merges that lower coverage or break linting.

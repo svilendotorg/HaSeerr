@@ -121,9 +121,45 @@ To talk in both languages, set up two Assist pipelines:
 | Pipeline | Conversation language | STT | TTS |
 |----------|----------------------|-----|-----|
 | English | `en` | faster-whisper / Cloud | Piper / Cloud |
-| Български | `bg` | faster-whisper (multilingual model, e.g. `small-int8`, language `bg` or `auto`) | Edge TTS (HACS) → `bg-BG-KalinaNeural` (Piper has no Bulgarian voice) |
+| Български | `bg` | faster-whisper, ideally a Bulgarian fine-tune (see below) | Edge TTS (HACS) → `bg-BG-KalinaNeural` (Piper has no Bulgarian voice) |
 
 The HaSeerr intent handler reads `intent_obj.language`; replies in Bulgarian when language starts with `bg`.
+
+### Bulgarian STT — fine-tuned Whisper for better recognition
+
+Vanilla `whisper-medium-int8` on Bulgarian has ~25% WER, and the BG verb `изтегли` ("download") is consistently mistranscribed as `истегли`, `изтеглий`, `изтъгли`, etc. The shipped HaSeerr `intents/bg.yaml` already absorbs the common variants, but you can also (or instead) swap in a Bulgarian fine-tuned Whisper model.
+
+The HA `core_whisper` add-on accepts custom HuggingFace models:
+
+```yaml
+beam_size: 0
+custom_model: svilendotorg/whisper-medium-bg-ct2  # or another HF model id
+custom_model_type: faster-whisper
+debug_logging: false
+language: bg
+model: custom
+stt_library: faster-whisper
+```
+
+`svilendotorg/whisper-medium-bg-ct2` is `shripadbhat/whisper-medium-bg` (medium fine-tune on FLEURS) converted to CTranslate2 with `int8_float16` quantization — drop-in swap with the vanilla `medium-int8` size.
+
+Two add-on caveats worth knowing:
+
+1. **`custom_model:` must be an HF repo ID, not a local path.** The wyoming-faster-whisper version bundled with the add-on calls `huggingface_hub.snapshot_download()` directly without the `os.path.isdir()` check newer faster-whisper has — local paths fail with `HFValidationError`.
+2. **`stt_library: transformers` is in the schema but not implemented** — selecting it crashes the runtime. Only `faster-whisper` works.
+
+To convert a transformers-format Whisper fine-tune yourself:
+
+```bash
+pip install ctranslate2 transformers torch huggingface_hub
+ct2-transformers-converter \
+  --model <hf_id> --output_dir <name>-ct2 --quantization int8_float16
+# Some BG fine-tunes don't ship tokenizer.json/preprocessor_config.json — pull from openai/whisper-<size>:
+python -c "from huggingface_hub import hf_hub_download; import shutil
+for f in ['tokenizer.json', 'preprocessor_config.json']:
+    shutil.copy(hf_hub_download('openai/whisper-medium', f), '<name>-ct2/' + f)"
+huggingface-cli upload <namespace>/<name>-ct2 <name>-ct2
+```
 
 ## Voice satellites (ESP32-S3-Box, Atom Echo, Voice PE)
 
